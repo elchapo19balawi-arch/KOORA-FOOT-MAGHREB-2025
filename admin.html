@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="fr">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin - Koora Foot Maghreb</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="header">
+  <div style="display:flex; align-items:center; gap:12px">
+    <a href="index.html" style="color:white; text-decoration:none">← Retour</a>
+    <div class="site-title">Admin - Koora Foot Maghreb</div>
+  </div>
+</header>
+
+<main class="container">
+  <div class="card">
+    <h3>Gérer les actualités (localStorage)</h3>
+    <form id="newsForm">
+      <div><input id="title" placeholder="Titre" style="width:100%; padding:8px; margin-bottom:8px"></div>
+      <div><textarea id="content" placeholder="Contenu" style="width:100%; padding:8px; height:100px"></textarea></div>
+      <div style="display:flex; gap:8px; margin-top:8px">
+        <button type="submit">Ajouter / Enregistrer</button>
+        <button type="button" id="clearBtn">Supprimer tout</button>
+      </div>
+    </form>
+    <hr>
+    <div id="list"></div>
+  </div>
+</main>
+
+<script>
+function getNews(){
+  return JSON.parse(localStorage.getItem('kfm_news') || '[]');
+}
+function saveNews(arr){ localStorage.setItem('kfm_news', JSON.stringify(arr)); render(); }
+function render(){
+  const list = document.getElementById('list'); list.innerHTML='';
+  const items = getNews();
+  if(items.length===0) list.innerHTML='<p>Aucune actualité.</p>';
+  items.forEach((it, idx)=>{
+    const d = document.createElement('div');
+    d.style.padding='8px 0'; d.style.borderBottom='1px solid #eee';
+    d.innerHTML = `<strong>${it.title}</strong><div style="font-size:13px;color:#444">${it.content}</div>
+      <div style="margin-top:6px"><button data-idx="${idx}" class="del">Supprimer</button></div>`;
+    list.appendChild(d);
+  });
+  document.querySelectorAll('.del').forEach(b=>b.onclick=(e)=>{ const i=e.target.dataset.idx; const arr=getNews(); arr.splice(i,1); saveNews(arr); });
+}
+document.getElementById('newsForm').onsubmit = function(e){
+  e.preventDefault();
+  const t=document.getElementById('title').value.trim();
+  const c=document.getElementById('content').value.trim();
+  if(!t) return alert('Titre requis');
+  const arr=getNews(); arr.unshift({title:t, content:c, date:new Date().toISOString()}); saveNews(arr);
+  document.getElementById('title').value=''; document.getElementById('content').value='';
+}
+document.getElementById('clearBtn').onclick = ()=>{ if(confirm('Supprimer toutes les actualités ?')){ localStorage.removeItem('kfm_news'); render(); } }
+render();
+</script>
+
+</body>
+</html>
