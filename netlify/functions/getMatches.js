@@ -1,22 +1,34 @@
+const axios = require("axios");
 
-exports.handler = async function(event, context) {
-  const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY;
-  if(!RAPIDAPI_KEY){
-    return { statusCode: 500, body: JSON.stringify({error: 'RAPIDAPI_KEY not configured on Netlify'}) };
-  }
-  const date = (event.queryStringParameters && event.queryStringParameters.date) || new Date().toISOString().slice(0,10);
-  const url = `https://api-football-v1.p.rapidapi.com/v3/fixtures?date=${date}`;
-  try{
-    const res = await fetch(url, {
+exports.handler = async (event) => {
+  try {
+    let date = new Date().toISOString().slice(0, 10);
+    if (event.queryStringParameters.date) {
+      date = event.queryStringParameters.date;
+    }
+
+    const options = {
       method: 'GET',
+      url: 'https://api-football-v1.p.rapidapi.com/v3/fixtures',
+      params: { date },
       headers: {
-        'x-rapidapi-key': RAPIDAPI_KEY,
-        'x-rapidapi-host': 'api-football-v1.p.rapidapi.com'
+        'x-rapidapi-key': process.env.RAPIDAPI_KEY,
+        'x-rapidapi-host': 'api-football-v1.p.rapidapi.com',
+        'Accept-Language': 'ar'
       }
-    });
-    const data = await res.json();
-    return { statusCode: 200, body: JSON.stringify(data) };
-  }catch(err){
-    return { statusCode: 500, body: JSON.stringify({error: err.message}) };
+    };
+
+    const response = await axios.request(options);
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify(response.data)
+    };
+
+  } catch (error) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: error.message })
+    };
   }
 };
